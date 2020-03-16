@@ -1,7 +1,7 @@
 var inquirer = require("inquirer");
-const DB_Queries = require("./DB_Assests/dbqueries");
+const Queries = require("./DB_Assests/dbqueries");
 
-const queries = new DB_Queries();
+const queries = new Queries();
 
 class CMS_Prompt {
   constructor(questions) {
@@ -11,7 +11,9 @@ class CMS_Prompt {
     inquirer
       .prompt([this.questions])
       .then(answers => {
-        // Use user feedback for... whatever!!
+        if (answers.Activity === "View All Employees") {
+          queries.getEmployees();
+        }
       })
       .catch(error => {
         if (error.isTtyError) {
