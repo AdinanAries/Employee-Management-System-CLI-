@@ -1,7 +1,7 @@
 const mysql = require("mysql");
 
 module.exports = class DB_Queries {
-  getEmployees() {
+  getEmployees(reIterate) {
     let con = mysql.createConnection({
       host: "127.0.0.1",
       user: "root",
@@ -16,13 +16,63 @@ module.exports = class DB_Queries {
         // if any error while executing above query, throw error
         if (err) throw err;
         // if there is no error, you have the result
-        console.log(result[0]);
-        //return result[0].id;
+        //console.log(result);
+        console.table(result);
+        reIterate(result);
       });
     });
   }
 
-  getDeparmentByName(departmentName) {
+  getDepartments(reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query("Select name from department", function(err, result, fields) {
+        // if any error while executing above query, throw error
+        if (err) throw err;
+        // if there is no error, you have the result
+        //return result[0].id;
+        reIterate(result);
+      });
+    });
+  }
+
+  getEmployeesByDepartmentName(departmentName, reIterate) {
+    this.getDeparmentByName(departmentName, departmentId => {
+      this.getRoleByDeparmentID(departmentId, roleID => {
+        let con = mysql.createConnection({
+          host: "127.0.0.1",
+          user: "root",
+          password: "Password@2020",
+          database: "emsdb"
+        });
+
+        con.connect(function(err) {
+          if (err) throw err;
+          // if connection is successful
+          con.query(
+            "Select * from employee where role_id = '" + parseInt(roleID) + "'",
+            function(err, result, fields) {
+              // if any error while executing above query, throw error
+              if (err) throw err;
+              // if there is no error, you have the result
+              //console.log(result);
+              reIterate(result);
+            }
+          );
+        });
+      });
+    });
+  }
+
+  getDeparmentByName(departmentName, reIterate) {
     let con = mysql.createConnection({
       host: "127.0.0.1",
       user: "root",
@@ -39,9 +89,7 @@ module.exports = class DB_Queries {
           // if any error while executing above query, throw error
           if (err) throw err;
           // if there is no error, you have the result
-          console.log(result[0].id);
-          //return result[0].id;
-          return result[0].id;
+          reIterate(result[0].id);
         }
       );
     });
@@ -71,6 +119,30 @@ module.exports = class DB_Queries {
     });
   }
 
+  getRoleByDeparmentID(departmentID, reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(
+        "SELECT id FROM role WHERE department_id = " + parseInt(departmentID),
+        function(err, result, fields) {
+          // if any error while executing above query, throw error
+          if (err) throw err;
+          // if there is no error, you have the result
+          //console.log(result);
+          //console.table(result);
+          reIterate(result[0].id);
+        }
+      );
+    });
+  }
   getRoleByTitle(title) {
     let con = mysql.createConnection({
       host: "127.0.0.1",
