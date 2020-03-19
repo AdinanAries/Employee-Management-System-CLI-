@@ -31,7 +31,7 @@ class CMS_Prompt {
       .then(answers => {
         if (answers.Activity === "View All Employees") {
           queries.getEmployees(emplist => {
-            console.log(emplist);
+            console.table(emplist);
             this.runPrompt();
           });
         } else if (answers.Activity === "View All Employees By Department") {
@@ -49,12 +49,14 @@ class CMS_Prompt {
             };
             //****************************************************************/
             inquirer
-              .prompt([this.questions])
+              .prompt(this.questions)
               .then(answers => {
                 queries.getEmployeesByDepartmentName(
                   answers.Activity,
                   emplist => {
                     console.table(emplist);
+                    this.questions = mainMenu;
+                    this.runPrompt();
                   }
                 );
               })
@@ -67,6 +69,146 @@ class CMS_Prompt {
               });
             /*****************************************************************/
           });
+        } else if (answers.Activity === "Add Employee") {
+          inquirer
+            .prompt([
+              {
+                message: "Enter first name",
+                type: "input",
+                name: "firstName",
+                validate: function validateFirstName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter last name",
+                type: "input",
+                name: "lastName",
+                validate: function validateLastName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter role",
+                type: "input",
+                name: "role",
+                validate: function validateDepartmentName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter manager's first name",
+                type: "input",
+                name: "manager",
+                validate: function validateManagerName(name) {
+                  return name !== " ";
+                }
+              }
+            ])
+            .then(answers => {
+              let firstName = answers.firstName;
+              let lastName = answers.lastName;
+              let role = answers.role;
+              let manager = answers.manager;
+              queries.addEmployee(
+                firstName,
+                lastName,
+                role,
+                manager,
+                sqlResult => {
+                  this.runPrompt();
+                }
+              );
+            })
+            .catch(error => {
+              if (error.isTtyError) {
+                // Prompt couldn't be rendered in the current environment
+              } else {
+                // Something else when wrong
+              }
+            });
+        } else if (answers.Activity === "Remove Employee") {
+          inquirer
+            .prompt([
+              {
+                message: "Enter first name",
+                type: "input",
+                name: "firstName",
+                validate: function validateFirstName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter last name",
+                type: "input",
+                name: "lastName",
+                validate: function validateLastName(name) {
+                  return name !== "";
+                }
+              }
+            ])
+            .then(answers => {
+              let firstName = answers.firstName;
+              let lastName = answers.lastName;
+              queries.removeEmployee(firstName, lastName, sqlResult => {
+                this.runPrompt();
+              });
+            })
+            .catch(error => {
+              if (error.isTtyError) {
+                // Prompt couldn't be rendered in the current environment
+              } else {
+                // Something else when wrong
+              }
+            });
+        } else if (answers.Activity === "Update Employee Role") {
+          inquirer
+            .prompt([
+              {
+                message: "Enter employee's first name",
+                type: "input",
+                name: "firstName",
+                validate: function validateFirstName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter employee's last name",
+                type: "input",
+                name: "lastName",
+                validate: function validateLastName(name) {
+                  return name !== "";
+                }
+              },
+              {
+                message: "Enter new role",
+                type: "input",
+                name: "role",
+                validate: function validateLastName(name) {
+                  return name !== "";
+                }
+              }
+            ])
+            .then(answers => {
+              let firstName = answers.firstName;
+              let lastName = answers.lastName;
+              let role = answers.role;
+              queries.updateEmployeeRole(
+                firstName,
+                lastName,
+                role,
+                sqlResult => {
+                  this.runPrompt();
+                }
+              );
+            })
+            .catch(error => {
+              if (error.isTtyError) {
+                // Prompt couldn't be rendered in the current environment
+              } else {
+                // Something else when wrong
+              }
+            });
         }
       })
       .catch(error => {

@@ -17,7 +17,7 @@ module.exports = class DB_Queries {
         if (err) throw err;
         // if there is no error, you have the result
         //console.log(result);
-        console.table(result);
+        //console.table(result);
         reIterate(result);
       });
     });
@@ -232,7 +232,7 @@ module.exports = class DB_Queries {
                 // if any error while executing above query, throw error
                 if (err) throw err;
                 // if there is no error, you have the result
-                console.log(result);
+                console.table(result);
               }
             );
           });
@@ -240,13 +240,17 @@ module.exports = class DB_Queries {
       );
     });
   }
-  addEmployee(firstName, lastName, role, manager_name) {
+  addEmployee(firstName, lastName, role, manager_name, reIterate) {
     let roleID;
-    let managerID;
+    let manager;
 
-    if (manager_name === null || manager_name === undefined) {
-      managerID = null;
+    if (
+      manager_name === null ||
+      manager_name === undefined ||
+      manager_name === ""
+    ) {
       manager_name = " ";
+      manager = [{ id: 4 }]; //asuming the default manager id for all inserts without manager name is 4
     }
 
     let con = mysql.createConnection({
@@ -267,9 +271,14 @@ module.exports = class DB_Queries {
           if (err) throw err;
           // if there is no error, you have the result
           if (manager_name === " ") {
-            console.log("I'm here");
+            console.log("This employee won't have a manager");
           } else {
-            managerID = result[0].id;
+            if (result.length === 0) {
+              console.log("No such provided manager exists");
+              manager = [{ id: 4 }]; //asuming the employee id for default manager 4;
+            } else {
+              manager = result;
+            }
           }
 
           let con = mysql.createConnection({
@@ -299,7 +308,8 @@ module.exports = class DB_Queries {
 
                 //inserting roles record
                 let insertEmpString;
-                if (managerID === null) {
+
+                if (manager === null || manager === undefined) {
                   insertEmpString =
                     "INSERT INTO employee (first_name, last_name, role_id) values ('" +
                     firstName +
@@ -317,7 +327,7 @@ module.exports = class DB_Queries {
                     "', '" +
                     roleID +
                     "', '" +
-                    managerID +
+                    manager[0].id +
                     "')";
                 }
                 con.connect(function(err) {
@@ -327,7 +337,13 @@ module.exports = class DB_Queries {
                     // if any error while executing above query, throw error
                     if (err) throw err;
                     // if there is no error, you have the result
-                    console.log(result);
+                    console.log(
+                      firstName +
+                        " " +
+                        lastName +
+                        " has been added successfully"
+                    );
+                    reIterate(result);
                   });
                 });
               }
@@ -340,5 +356,77 @@ module.exports = class DB_Queries {
   viewDepartments() {}
   viewRoles() {}
   viewEmployees() {}
-  updateEmployeeRole() {}
+  updateEmployeeRole(firstName, lastName, role, reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(`select id from role where title = '${role}'`, function(
+        err,
+        result,
+        fields
+      ) {
+        // if any error while executing above query, throw error
+        if (err) throw err;
+
+        let con = mysql.createConnection({
+          host: "127.0.0.1",
+          user: "root",
+          password: "Password@2020",
+          database: "emsdb"
+        });
+
+        con.connect(function(err) {
+          if (err) throw err;
+          // if connection is successful
+          con.query(
+            `update employee set role_id = ${result[0].id} where first_name = '${firstName}' and last_name = '${lastName}'`,
+            function(err, result, fields) {
+              // if any error while executing above query, throw error
+              if (err) throw err;
+
+              if (result.affectedRows === 0)
+                console.log(`${firstName} ${lastName} is not an employee`);
+              else console.log(`${firstName} ${lastName} is now a ${role}`);
+
+              reIterate(result);
+            }
+          );
+        });
+
+        reIterate(result);
+      });
+    });
+  }
+  removeEmployee(firstName, lastName, reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(
+        `delete from  employee where first_name = '${firstName}' and last_name = '${lastName}'`,
+        function(err, result, fields) {
+          // if any error while executing above query, throw error
+          if (err) throw err;
+          if (result.affectedRows === 0)
+            console.log(`${firstName} ${lastName} is not an employee`);
+          else console.log(`${firstName} ${lastName} was removed successfully`);
+
+          reIterate(result);
+        }
+      );
+    });
+  }
 };

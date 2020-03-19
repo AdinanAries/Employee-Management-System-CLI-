@@ -22,3 +22,11 @@ manager_id INT(10) UNSIGNED NULL,
 FOREIGN KEY (role_id) REFERENCES role(id),
 FOREIGN KEY (manager_id) REFERENCES employee(id)
 );*/
+
+/*
+Database connection parameters (con string)
+    host: "127.0.0.1",
+    user: "root",
+    password: "Password@2020",
+    database: "emsdb"
+*/
