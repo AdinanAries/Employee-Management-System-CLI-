@@ -1,4 +1,12 @@
-/*create database EMSDB;
+/*
+important notes
+1.The program asumes that the database server runs on a localhost mysql server
+2.It is also asumed that the database server has a username 'root' which uses password 'Password@2020'
+3.The database name(schema) for the employee management system is 'emsdb'
+
+use the queries below to create the emsdb database and its objects
+
+create database emsdb;
 
 CREATE TABLE department (
 id INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,

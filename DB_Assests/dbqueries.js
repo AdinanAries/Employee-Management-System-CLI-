@@ -353,9 +353,63 @@ module.exports = class DB_Queries {
       );
     });
   }
-  viewDepartments() {}
-  viewRoles() {}
-  viewEmployees() {}
+
+  updateEmployeeManager(
+    firstName,
+    lastName,
+    managerfName,
+    managerlName,
+    reIterate
+  ) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(
+        `select id from employee where first_name = '${managerfName}' and last_name = '${managerlName}'`,
+        function(err, result, fields) {
+          // if any error while executing above query, throw error
+          if (err) throw err;
+
+          let con = mysql.createConnection({
+            host: "127.0.0.1",
+            user: "root",
+            password: "Password@2020",
+            database: "emsdb"
+          });
+
+          con.connect(function(err) {
+            if (err) throw err;
+            // if connection is successful
+            con.query(
+              `update employee set manager_id = ${result[0].id} where first_name = '${firstName}' and last_name = '${lastName}'`,
+              function(err, result, fields) {
+                // if any error while executing above query, throw error
+                if (err) throw err;
+
+                if (result.affectedRows === 0)
+                  console.log(`${firstName} ${lastName} is not an employee`);
+                else
+                  console.log(
+                    `${firstName} ${lastName} is now being managed by ${managerfName} ${managerlName}`
+                  );
+
+                reIterate(result);
+              }
+            );
+          });
+
+          //reIterate(result);
+        }
+      );
+    });
+  }
   updateEmployeeRole(firstName, lastName, role, reIterate) {
     let con = mysql.createConnection({
       host: "127.0.0.1",
@@ -400,7 +454,7 @@ module.exports = class DB_Queries {
           );
         });
 
-        reIterate(result);
+        // reIterate(result);
       });
     });
   }
@@ -425,6 +479,99 @@ module.exports = class DB_Queries {
           else console.log(`${firstName} ${lastName} was removed successfully`);
 
           reIterate(result);
+        }
+      );
+    });
+  }
+  getManagers(reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(
+        "Select distinct manager_id from employee", // where name = '" + departmentName + "'",
+        function(err, result, fields) {
+          // if any error while executing above query, throw error
+          if (err) throw err;
+          // if there is no error, you have the result
+          let managerIDs = result.map(obj => {
+            return obj.manager_id;
+          });
+          let managerIDString = managerIDs.toString(); //.replace(/,/g, " ");
+          let con = mysql.createConnection({
+            host: "127.0.0.1",
+            user: "root",
+            password: "Password@2020",
+            database: "emsdb"
+          });
+
+          con.connect(function(err) {
+            if (err) throw err;
+            // if connection is successful
+            con.query(
+              "Select first_name, last_name from employee where id in (" +
+                managerIDString +
+                ")",
+              function(err, result, fields) {
+                // if any error while executing above query, throw error
+                if (err) throw err;
+                // if there is no error, you have the result
+                //console.log(result);
+                reIterate(result);
+              }
+            );
+          });
+        }
+      );
+    });
+  }
+  getEmployeesByManagerName(managerfName, managerlName, reIterate) {
+    let con = mysql.createConnection({
+      host: "127.0.0.1",
+      user: "root",
+      password: "Password@2020",
+      database: "emsdb"
+    });
+
+    con.connect(function(err) {
+      if (err) throw err;
+      // if connection is successful
+      con.query(
+        `SELECT id FROM employee where first_name = '${managerfName}' and last_name = '${managerlName}'`,
+        function(err, result, fields) {
+          // if any error while executing above query, throw error
+          if (err) throw err;
+          // if there is no error, you have the result
+          //console.log(result[0]);
+          //console.table(result);
+          let con = mysql.createConnection({
+            host: "127.0.0.1",
+            user: "root",
+            password: "Password@2020",
+            database: "emsdb"
+          });
+
+          con.connect(function(err) {
+            if (err) throw err;
+            // if connection is successful
+            con.query(
+              `SELECT * FROM employee where manager_id = ${result[0].id}`,
+              function(err, result, fields) {
+                // if any error while executing above query, throw error
+                if (err) throw err;
+                // if there is no error, you have the result
+                //console.log(result);
+                //console.table(result);
+                reIterate(result);
+              }
+            );
+          });
         }
       );
     });
